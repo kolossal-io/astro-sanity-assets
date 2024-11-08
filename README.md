@@ -92,7 +92,7 @@ export default defineConfig({
 });
 ```
 
-The `handler` function receives every item from the array returned by the [`query`](#query) and must return an object containing the `url` to download and the local `filename` to use inside the [`directory`](#directory).
+The `handler` function receives every item from the array returned by the [`query`](#query) and must return an object containing the `url` to download and the local `filename` to use inside the [`directory`](#directory). If the file should be skipped just return `undefined` or `null`.
 
 ## Usage
 
