@@ -94,6 +94,34 @@ export default defineConfig({
 
 The `handler` function receives every item from the array returned by the [`query`](#query) and must return an object containing the `url` to download and the local `filename` to use inside the [`directory`](#directory).
 
+## Usage
+
+You can use the local files however you like. Since they are downloaded at start of the build process they are available early on. For example, you could check if the file exists locally like so:
+
+```astro
+---
+import fs from "fs";
+import { resolve } from "path";
+import type { SanityFileAsset } from "@types/sanity.types";
+
+interface Props {
+  title: string;
+  file: SanityFileAsset;
+}
+
+const { file } = Astro.props;
+
+const src = `/downloads/${file.originalFilename}`;
+const filePath = resolve("./public/downloads", file.originalFilename);
+
+if (!fs.existsSync(filePath)) {
+  return null;
+}
+---
+
+<a href={src}>{title}</a>
+```
+
 ## License
 
 <p>
