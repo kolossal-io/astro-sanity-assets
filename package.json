@@ -1,9 +1,9 @@
 {
   "name": "astro-sanity-assets",
   "description": "Download Sanity File Assets to your Astro site",
-  "version": "1.0.2",
+  "version": "1.1.0",
   "type": "module",
-  "author": "kolossal <hello@kolossal.io>",
+  "author": "kolossal <hallo@kolossal.io>",
   "license": "MIT",
   "repository": {
     "type": "git",

@@ -57,6 +57,8 @@ If the specified `directory` does not exist in the `public/` folder, the plugin 
 
 Any [GROQ query](groq) that will return an array of Sanity [Asset](sanity-asset) objects as returned by the [File](sanity-file) field. The only required fields are `assetId`, `extension` and `url`. You may also use a totally different query and tweak the data by using the [`handler`](#handler) function.
 
+If the file assets provide a `sha1hash` that matches the one of an already downloaded file, the file download will be skipped.
+
 The files by default will be named `<assetId>.<extension>`.
 
 ### `handler`
@@ -65,12 +67,7 @@ Sometimes you may want to use a `query` that does not return Sanity [Assets](san
 
 ```ts
 import { defineConfig } from "astro/config";
-import downloadSanityAssets from "astro-sanity-assets";
-
-type FileAssetType = {
-  url: string;
-  originalFilename: string;
-};
+import downloadSanityAssets, { type FileAssetType } from "astro-sanity-assets";
 
 export default defineConfig({
   // ...
@@ -85,6 +82,7 @@ export default defineConfig({
           ? {
               url: file.url, // URL of the file to download
               filename: file.originalFilename, // local filename
+              sha1hash: file.sha1hash, // sha1 hash of file
             }
           : undefined,
     }),
@@ -138,7 +136,6 @@ if (!fs.existsSync(filePath)) {
 </p>
 
 Copyright © [kolossal](https://kolossal.io). Released under [MIT License](LICENSE.md).
-
 
 [astro-integration]: https://docs.astro.build/en/guides/integrations-guide/
 [sanity-client]: https://github.com/sanity-io/client

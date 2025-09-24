@@ -1,4 +1,11 @@
-import { createWriteStream, existsSync, mkdirSync, rmSync } from "node:fs";
+import { createHash } from "node:crypto";
+import {
+  createReadStream,
+  createWriteStream,
+  existsSync,
+  mkdirSync,
+  rmSync,
+} from "node:fs";
 import { resolve } from "node:path";
 import type { AstroIntegration, AstroIntegrationLogger } from "astro";
 import axios from "axios";
@@ -14,9 +21,15 @@ type SanityFileAsset = {
   url?: string;
 };
 
+export type FileAssetType = {
+  url: string;
+  filename: string;
+  sha1hash?: string;
+};
+
 type Handler<T = SanityFileAsset> = (
   data: T
-) => { url: string; filename: string } | undefined | null;
+) => FileAssetType | undefined | null;
 
 interface DownloadSanityAssetsProps<D, Q extends string> extends ClientConfig {
   directory: string;
@@ -34,6 +47,32 @@ type DownloadSanityAssetsPropsWithHandler<D, Q extends string> = Omit<
 type AstroBuildStartOptions = {
   logger: AstroIntegrationLogger;
 };
+
+async function checkIfFileHasNotChanged(
+  filePath: string,
+  remoteSha1: string
+): Promise<boolean> {
+  if (!existsSync(filePath)) {
+    return false;
+  }
+
+  const sha1 = await new Promise((resolveHash, reject) => {
+    const hash = createHash("sha1");
+    const stream = createReadStream(filePath);
+
+    stream.on("error", (err) => reject(err));
+
+    stream.on("data", (chunk) => {
+      hash.update(chunk);
+    });
+
+    stream.on("end", () => {
+      resolveHash(hash.digest("hex"));
+    });
+  });
+
+  return sha1 === remoteSha1;
+}
 
 async function fetchAssetUrls<R, Q extends string = string>(
   query: Q,
@@ -81,6 +120,7 @@ function downloadSanityAssets<D, Q extends string = string>({
         ? {
             url: data.url,
             filename: `${data.assetId}.${data.extension}`,
+            sha1hash: data.sha1hash,
           }
         : undefined;
     });
@@ -162,7 +202,19 @@ function downloadSanityAssets<D, Q extends string = string>({
           `Downloading ${files.length} remote assets to /public/${directory}…`
         );
 
-        for (const { url, filename } of files) {
+        for (const { url, filename, sha1hash } of files) {
+          if (sha1hash) {
+            const isSame = await checkIfFileHasNotChanged(
+              resolve(getFolderPath(), filename),
+              sha1hash
+            );
+
+            if (isSame) {
+              logger.info(`Skipping ${filename}, file has not changed.`);
+              continue;
+            }
+          }
+
           logger.info(`Downloading ${filename}...`);
 
           await downloadAsset(url, filename).catch((e) => {
