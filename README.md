@@ -51,7 +51,7 @@ export default defineConfig({
 
 The plugin run on every Astro build, retrieve the list of files and will download them to `public/<directory>`. So in the example above all attachments from the `file` field in `download` documents will be downloaded to `public/downloads` and therefore land in the final `dist/downloads` folder.
 
-If the specified `directory` does not exist in the `public/` folder, the plugin will create the folder and delete it after the build, so that only the `dist/` folder will contain the files after the build is done. The folder will not be deleted, if it already existed when the build was started.
+If the specified `directory` does not exist in the `public/` folder, the plugin will create the folder and delete it after the build, so that only the `dist/` folder will contain the files after the build is done. The folder will not be deleted, if it already existed when the build was started or if you set the `keepDirectory` option to `true`.
 
 ### `query`
 

@@ -35,6 +35,7 @@ interface DownloadSanityAssetsProps<D, Q extends string> extends ClientConfig {
   directory: string;
   query: Q;
   handler?: Handler<D>;
+  keepDirectory?: boolean;
 }
 
 type DownloadSanityAssetsPropsWithHandler<D, Q extends string> = Omit<
@@ -107,6 +108,7 @@ function downloadSanityAssets<D, Q extends string = string>({
   directory,
   query,
   handler: handlerProp,
+  keepDirectory = false,
   ...sanityConfig
 }: DownloadSanityAssetsProps<D, Q>): AstroIntegration {
   let createdFolder = false;
@@ -254,7 +256,7 @@ function downloadSanityAssets<D, Q extends string = string>({
         }
       },
       "astro:build:done": async (options) => {
-        if (createdFolder) {
+        if (createdFolder && !keepDirectory) {
           deleteFolder(options);
         }
       },
