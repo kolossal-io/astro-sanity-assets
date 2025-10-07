@@ -157,6 +157,33 @@ function downloadSanityAssets<D, Q extends string = string>({
     return true;
   }
 
+  async function getAssetFileSize(url: string): Promise<string | null> {
+    try {
+      const response = await axios.head(url);
+      const contentLength = response.headers["content-length"];
+
+      if (!contentLength) {
+        return null;
+      }
+
+      const sizeInBytes = parseInt(contentLength, 10);
+
+      if (isNaN(sizeInBytes)) {
+        return null;
+      }
+
+      if (sizeInBytes < 1024) {
+        return `${sizeInBytes} B`;
+      } else if (sizeInBytes < 1024 * 1024) {
+        return `${(sizeInBytes / 1024).toFixed(2)} KB`;
+      } else {
+        return `${(sizeInBytes / (1024 * 1024)).toFixed(2)} MB`;
+      }
+    } catch (error) {
+      return null;
+    }
+  }
+
   async function downloadAsset(url: string, filename: string): Promise<void> {
     const filePath = resolve(getFolderPath(), filename);
 
@@ -215,7 +242,11 @@ function downloadSanityAssets<D, Q extends string = string>({
             }
           }
 
-          logger.info(`Downloading ${filename}...`);
+          const filesize = await getAssetFileSize(url);
+
+          logger.info(
+            `Downloading ${filename}${filesize ? ` [${filesize}]` : ""}...`
+          );
 
           await downloadAsset(url, filename).catch((e) => {
             logger.error(`Downloading ${filename} failed.`);
