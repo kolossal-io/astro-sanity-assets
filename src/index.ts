@@ -6,7 +6,9 @@ import {
   mkdirSync,
   rmSync,
 } from "node:fs";
+import { writeFile } from "node:fs/promises";
 import { resolve } from "node:path";
+import { Readable } from "node:stream";
 import type { AstroIntegration, AstroIntegrationLogger } from "astro";
 import axios from "axios";
 import {
@@ -36,6 +38,7 @@ interface DownloadSanityAssetsProps<D, Q extends string> extends ClientConfig {
   query: Q;
   handler?: Handler<D>;
   keepDirectory?: boolean;
+  mapContent?: (buffer: Buffer) => Buffer;
 }
 
 type DownloadSanityAssetsPropsWithHandler<D, Q extends string> = Omit<
@@ -109,6 +112,7 @@ function downloadSanityAssets<D, Q extends string = string>({
   query,
   handler: handlerProp,
   keepDirectory = false,
+  mapContent = undefined,
   ...sanityConfig
 }: DownloadSanityAssetsProps<D, Q>): AstroIntegration {
   let createdFolder = false;
@@ -186,16 +190,36 @@ function downloadSanityAssets<D, Q extends string = string>({
     }
   }
 
-  async function downloadAsset(url: string, filename: string): Promise<void> {
+  async function downloadAssetWithMapping(
+    url: string,
+    filename: string,
+    mapContent: (buffer: Buffer) => Buffer
+  ): Promise<void> {
+    const filePath = resolve(getFolderPath(), filename);
+
+    const response = await axios.get<ArrayBuffer>(url, {
+      responseType: "arraybuffer",
+    });
+
+    const content = mapContent(Buffer.from(response.data));
+
+    return writeFile(filePath, content);
+  }
+
+  async function downloadAsset(
+    url: string,
+    filename: string,
+    mapContent?: (buffer: Buffer) => Buffer
+  ): Promise<void> {
+    if (mapContent) {
+      return downloadAssetWithMapping(url, filename, mapContent);
+    }
+
     const filePath = resolve(getFolderPath(), filename);
 
     const writer = createWriteStream(filePath);
 
-    const response = await axios({
-      url,
-      method: "GET",
-      responseType: "stream",
-    });
+    const response = await axios.get<Readable>(url, { responseType: "stream" });
 
     response.data.pipe(writer);
 
@@ -250,7 +274,7 @@ function downloadSanityAssets<D, Q extends string = string>({
             `Downloading ${filename}${filesize ? ` [${filesize}]` : ""}...`
           );
 
-          await downloadAsset(url, filename).catch((e) => {
+          await downloadAsset(url, filename, mapContent).catch((e) => {
             logger.error(`Downloading ${filename} failed.`);
           });
         }

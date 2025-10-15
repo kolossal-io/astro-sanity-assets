@@ -92,6 +92,29 @@ export default defineConfig({
 
 The `handler` function receives every item from the array returned by the [`query`](#query) and must return an object containing the `url` to download and the local `filename` to use inside the [`directory`](#directory). If the file should be skipped just return `undefined` or `null`.
 
+### `mapContent`
+
+If you provide a callback function to the `mapContent` option, you can edit the file contents before the file is written to disk. For example:
+
+```ts
+export default defineConfig({
+  // ...
+  integrations: [
+    downloadSanityAssets({
+      // ...other options
+      directory: "remote",
+      query: `*[_type == "client" && defined(logo)].logo.asset->`,
+      mapContent: (buffer) => {
+        const svg = buffer.toString("utf-8");
+
+        // replace all reds with white in the SVG
+        return Buffer.from(svg.replace("#f00", "#fff"), "utf-8");
+      },
+    }),
+  ],
+});
+```
+
 ## Usage
 
 You can use the local files however you like. Since they are downloaded at start of the build process they are available early on. For example, you could check if the file exists locally like so:
