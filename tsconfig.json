@@ -3,9 +3,10 @@
     "src/**/*"
   ],
   "compilerOptions": {
+    "rootDir": "src",
     "target": "ES2020",
-    "module": "ESNext",
-    "moduleResolution": "Node",
+    "module": "node16",
+    "moduleResolution": "node16",
     "declaration": true,
     "outDir": "dist",
     "esModuleInterop": true,
