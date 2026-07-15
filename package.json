@@ -32,13 +32,13 @@
   },
   "devDependencies": {
     "@sanity/client": "^7.0.0",
-    "@types/node": "^25.5.2",
-    "astro": "^6.0.0",
-    "typescript": "^6.0.2"
+    "@types/node": "^26.1.1",
+    "astro": "^7.0.0",
+    "typescript": "^7.0.2"
   },
   "peerDependencies": {
     "@sanity/client": "^6.18.3 || ^7.0.0",
-    "astro": "^3.0.0 || ^4.0.0 || ^5.0.0 || ^6.0.0"
+    "astro": "^3.0.0 || ^4.0.0 || ^5.0.0 || ^6.0.0 || ^7.0.0"
   },
   "engines": {
     "node": ">=18.14.1"
