@@ -30,7 +30,7 @@ export type FileAssetType = {
 };
 
 type Handler<T = SanityFileAsset> = (
-  data: T
+  data: T,
 ) => FileAssetType | undefined | null;
 
 interface DownloadSanityAssetsProps<D, Q extends string> extends ClientConfig {
@@ -54,7 +54,7 @@ type AstroBuildStartOptions = {
 
 async function checkIfFileHasNotChanged(
   filePath: string,
-  remoteSha1: string
+  remoteSha1: string,
 ): Promise<boolean> {
   if (!existsSync(filePath)) {
     return false;
@@ -81,7 +81,7 @@ async function checkIfFileHasNotChanged(
 async function fetchAssetUrls<R, Q extends string = string>(
   query: Q,
   config: ClientConfig,
-  options?: AstroBuildStartOptions
+  options?: AstroBuildStartOptions,
 ): Promise<R[]> {
   let client: SanityClient;
 
@@ -89,7 +89,7 @@ async function fetchAssetUrls<R, Q extends string = string>(
     client = createClient(config);
   } catch (e) {
     options?.logger.error(
-      "Could not create Sanity client. Please check the configuration."
+      "Could not create Sanity client. Please check the configuration.",
     );
     throw e;
   }
@@ -100,11 +100,11 @@ async function fetchAssetUrls<R, Q extends string = string>(
 }
 
 function downloadSanityAssets<D = SanityFileAsset, Q extends string = string>(
-  config: DownloadSanityAssetsProps<D, Q>
+  config: DownloadSanityAssetsProps<D, Q>,
 ): AstroIntegration;
 
 function downloadSanityAssets<D, Q extends string = string>(
-  config: DownloadSanityAssetsPropsWithHandler<D, Q>
+  config: DownloadSanityAssetsPropsWithHandler<D, Q>,
 ): AstroIntegration;
 
 function downloadSanityAssets<D, Q extends string = string>({
@@ -172,7 +172,7 @@ function downloadSanityAssets<D, Q extends string = string>({
         return null;
       }
 
-      const sizeInBytes = parseInt(contentLength, 10);
+      const sizeInBytes = parseInt(contentLength.toString(), 10);
 
       if (isNaN(sizeInBytes)) {
         return null;
@@ -193,7 +193,7 @@ function downloadSanityAssets<D, Q extends string = string>({
   async function downloadAssetWithMapping(
     url: string,
     filename: string,
-    mapContent: (buffer: Buffer) => Buffer
+    mapContent: (buffer: Buffer) => Buffer,
   ): Promise<void> {
     const filePath = resolve(getFolderPath(), filename);
 
@@ -209,7 +209,7 @@ function downloadSanityAssets<D, Q extends string = string>({
   async function downloadAsset(
     url: string,
     filename: string,
-    mapContent?: (buffer: Buffer) => Buffer
+    mapContent?: (buffer: Buffer) => Buffer,
   ): Promise<void> {
     if (mapContent) {
       return downloadAssetWithMapping(url, filename, mapContent);
@@ -252,14 +252,14 @@ function downloadSanityAssets<D, Q extends string = string>({
         createdFolder = createFolder(options);
 
         logger.info(
-          `Downloading ${files.length} remote assets to /public/${directory}…`
+          `Downloading ${files.length} remote assets to /public/${directory}…`,
         );
 
         for (const { url, filename, sha1hash } of files) {
           if (sha1hash) {
             const isSame = await checkIfFileHasNotChanged(
               resolve(getFolderPath(), filename),
-              sha1hash
+              sha1hash,
             );
 
             if (isSame) {
@@ -271,7 +271,7 @@ function downloadSanityAssets<D, Q extends string = string>({
           const filesize = await getAssetFileSize(url);
 
           logger.info(
-            `Downloading ${filename}${filesize ? ` [${filesize}]` : ""}...`
+            `Downloading ${filename}${filesize ? ` [${filesize}]` : ""}...`,
           );
 
           await downloadAsset(url, filename, mapContent).catch((e) => {
